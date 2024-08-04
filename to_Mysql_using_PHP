@@ -1,0 +1,66 @@
+Making a MySql Database from all categories. Code Initiated by AI (https://zzzcode.ai/code-generator?id=1c8d0618-3aea-4d09-bf1a-7580d5cbae31). Tested and works great except for one issue regarding charset found inside the category files when inserting
+into the database. Perhaps only changing the CHARSET of the table might work. Either you remove these questions or if you're more advance than I am, fix the CHARSET issue that the communication goes smoothly. When I was running this code,
+I solved that issue the "red-neck" way, undreds of rows would be inserted then, the charset error would stop it. I would open the category file and remove that perticular question and all the other ones above (you don't want to insert them a 2nd time right?), and continue running the code. Here is the structure and code. My best bet is... there's probably an easier way to have the charset problem solved. If so modifie this code or elaborate. 
+
+Mysql Table
+
+CREATE TABLE IF NOT EXISTS `Table_Name_Here` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `question` text,
+  `correct_answer` varchar(190) DEFAULT NULL,
+  `answer_a` varchar(190) DEFAULT NULL,
+  `answer_b` varchar(190) DEFAULT NULL,
+  `answer_c` varchar(190) DEFAULT NULL,
+  `answer_d` varchar(190) DEFAULT NULL,
+  `category` varchar(190) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=25722 DEFAULT CHARSET=latin1;
+
+
+Run The PHP code ONE TIME for EVERY category, change 2 pieces of info for every category:
+PATH_TO_CATEGORY_FILE (first line)
+INSERT_CORRECT_CATEGOTY_HERE (last line)
+-------------------------------------------------------
+$file = 'PATH_TO_CATEGORY_FILE';
+$lines = file($file, FILE_IGNORE_NEW_LINES);
+
+$questions = [];
+$currentQuestion = [];
+
+foreach ($lines as $line) {
+    if (strpos($line, '#Q') === 0) {
+        if (!empty($currentQuestion)) {
+            $questions[] = $currentQuestion;
+            $currentQuestion = [];
+        }
+        $currentQuestion['question'] = substr($line, 3);
+    } elseif (strpos($line, '^') === 0) {
+        $currentQuestion['correct_answer'] = substr($line, 2);
+    } elseif (strpos($line, 'A ') === 0) {
+        $currentQuestion['answer_a'] = substr($line, 2);
+    } elseif (strpos($line, 'B ') === 0) {
+        $currentQuestion['answer_b'] = substr($line, 2);
+    } elseif (strpos($line, 'C ') === 0) {
+        $currentQuestion['answer_c'] = substr($line, 2);
+    } elseif (strpos($line, 'D ') === 0) {
+        $currentQuestion['answer_d'] = substr($line, 2);
+    }
+}
+
+// Insert 'N/A' for missing answer options
+foreach ($questions as &$question) {
+    if (!isset($question['answer_c'])) {
+        $question['answer_c'] = 'N/A';
+    }
+    if (!isset($question['answer_d'])) {
+        $question['answer_d'] = 'N/A';
+    }
+}
+
+// Insert into MySQL table
+foreach ($questions as $question) {
+    $sql = "INSERT INTO Table_Name_Here (name, correct_answer, answer_a, answer_b, answer_c, answer_d, category) 
+            VALUES ('{$question['question']}', '{$question['correct_answer']}', '{$question['answer_a']}', '{$question['answer_b']}', '{$question['answer_c']}', '{$question['answer_d']}', 'INSERT_CORRECT_CATEGOTY_HERE')";
+    // Execute SQL query to insert into MySQL
+}
+-------------------------------------------------------------------------
